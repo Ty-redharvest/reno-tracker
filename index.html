@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reno Tracker — High Wycombe</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --sand: #e8dcc8;
+    --terracotta: #c4622d;
+    --terracotta-light: #d97b4a;
+    --deep: #1a1208;
+    --mid: #3d2e1a;
+    --muted: #7a6a52;
+    --green: #4a7c59;
+    --red: #b03a2e;
+    --border: rgba(60,46,26,0.15);
+    --shadow: 0 4px 24px rgba(26,18,8,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    color: var(--deep);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 80% 10%, rgba(196,98,45,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 10% 90%, rgba(74,124,89,0.07) 0%, transparent 50%);
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--deep);
+    align-items: center; justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #login-screen.visible { display: flex; }
+
+  /* decorative circles */
+  #login-screen::before {
+    content:''; position:absolute;
+    top:-120px; right:-120px;
+    width:420px; height:420px;
+    border:80px solid rgba(196,98,45,0.12); border-radius:50%;
+  }
+  #login-screen::after {
+    content:''; position:absolute;
+    bottom:-100px; left:-80px;
+    width:320px; height:320px;
+    border:60px solid rgba(74,124,89,0.1); border-radius:50%;
+  }
+
+  .login-card {
+    position: relative; z-index: 2;
+    width: 420px; max-width: calc(100vw - 40px);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(245,240,232,0.1);
+    border-radius: 24px;
+    padding: 52px 48px 44px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    animation: loginFadeIn 0.5s ease;
+  }
+  @keyframes loginFadeIn {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .login-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem; font-weight: 900;
+    color: var(--cream); letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+  .login-logo span { color: var(--terracotta-light); }
+  .login-address {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 1.5px; color: rgba(245,240,232,0.35);
+    margin-bottom: 40px;
+  }
+
+  .login-field { margin-bottom: 16px; }
+  .login-field label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 1.5px; color: rgba(245,240,232,0.45);
+    margin-bottom: 8px;
+  }
+  .login-field input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(245,240,232,0.15);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; color: var(--cream);
+    outline: none; transition: border-color 0.2s;
+  }
+  .login-field input::placeholder { color: rgba(245,240,232,0.25); }
+  .login-field input:focus { border-color: var(--terracotta-light); }
+  .login-field input.shake {
+    animation: shake 0.4s ease;
+    border-color: var(--red) !important;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}
+    80%{transform:translateX(6px)}
+  }
+
+  .login-error {
+    font-size: 0.8rem; color: #e07070;
+    min-height: 20px; margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .btn-login {
+    width: 100%; margin-top: 8px;
+    background: var(--terracotta);
+    color: white; border: none; border-radius: 10px;
+    padding: 15px; font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-login:hover { background: var(--terracotta-light); transform: translateY(-1px); }
+  .btn-login:active { transform: translateY(0); }
+
+  .login-hint {
+    margin-top: 28px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 1px; color: rgba(245,240,232,0.2);
+    text-align: center;
+    cursor: pointer; transition: color 0.2s;
+  }
+  .login-hint:hover { color: rgba(245,240,232,0.5); }
+
+  .login-mode-toggle {
+    text-align: center; margin-top: 20px;
+    font-size: 0.8rem; color: rgba(245,240,232,0.35);
+  }
+  .login-mode-toggle span {
+    color: var(--terracotta-light); cursor: pointer; text-decoration: underline;
+  }
+
+  /* logout button in header */
+  .logout-btn {
+    background: rgba(196,98,45,0.15);
+    border: 1px solid rgba(196,98,45,0.3);
+    border-radius: 8px; padding: 8px 16px;
+    color: var(--terracotta-light);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 1px; cursor: pointer;
+    transition: all 0.2s; position: relative; z-index: 1;
+  }
+  .logout-btn:hover { background: var(--terracotta); color: white; border-color: var(--terracotta); }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--deep);
+    color: var(--cream);
+    padding: 32px 48px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content:''; position:absolute; top:-40px; right:-40px;
+    width:200px; height:200px;
+    border:40px solid rgba(196,98,45,0.15); border-radius:50%;
+  }
+  header::after {
+    content:''; position:absolute; bottom:-60px; right:80px;
+    width:140px; height:140px;
+    border:30px solid rgba(232,220,200,0.07); border-radius:50%;
+  }
+  .header-left h1 {
+    font-family:'Playfair Display',serif;
+    font-size:2.4rem; font-weight:900;
+    letter-spacing:-0.5px; line-height:1.1;
+  }
+  .header-left h1 span { color:var(--terracotta-light); }
+  .header-left p {
+    font-family:'DM Mono',monospace; font-size:0.75rem;
+    color:rgba(245,240,232,0.5); margin-top:6px;
+    letter-spacing:1px; text-transform:uppercase;
+  }
+  .purchase-badge {
+    background:rgba(196,98,45,0.2);
+    border:1px solid rgba(196,98,45,0.4);
+    border-radius:8px; padding:12px 20px;
+    text-align:right; position:relative; z-index:1;
+  }
+  .purchase-badge .label {
+    font-family:'DM Mono',monospace; font-size:0.65rem;
+    color:rgba(245,240,232,0.5); text-transform:uppercase; letter-spacing:1px;
+  }
+  .purchase-badge .amount {
+    font-family:'Playfair Display',serif;
+    font-size:1.6rem; font-weight:700; color:var(--terracotta-light);
+  }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--mid);
+    display: flex;
+    gap: 0;
+    padding: 0 48px;
+  }
+  .nav-tab {
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px;
+    padding:14px 24px;
+    color:rgba(245,240,232,0.45);
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    transition:all 0.2s;
+    user-select:none;
+  }
+  .nav-tab:hover { color:rgba(245,240,232,0.8); }
+  .nav-tab.active { color:var(--terracotta-light); border-bottom-color:var(--terracotta-light); }
+
+  /* ── SUMMARY CARDS ── */
+  .summary {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px; padding:32px 48px 0;
+  }
+  .card {
+    background:white; border-radius:12px; padding:20px 24px;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .card::before {
+    content:''; position:absolute; top:0; left:0;
+    width:4px; height:100%; background:var(--sand);
+  }
+  .card.accent-terra::before { background:var(--terracotta); }
+  .card.accent-green::before { background:var(--green); }
+  .card.accent-red::before   { background:var(--red); }
+  .card.accent-mid::before   { background:var(--mid); }
+  .card .card-label {
+    font-family:'DM Mono',monospace; font-size:0.65rem;
+    text-transform:uppercase; letter-spacing:1.5px;
+    color:var(--muted); margin-bottom:8px;
+  }
+  .card .card-value {
+    font-family:'Playfair Display',serif;
+    font-size:1.7rem; font-weight:700; color:var(--deep);
+  }
+  .card .card-sub { font-size:0.75rem; color:var(--muted); margin-top:4px; }
+
+  /* ── PROGRESS ── */
+  .progress-section { padding:24px 48px 0; }
+  .progress-bar-wrap {
+    background:white; border-radius:12px; padding:20px 24px;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .bar-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .bar-title { font-family:'DM Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
+  .bar-pct   { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--terracotta); }
+  .bar-track { height:10px; background:var(--sand); border-radius:99px; overflow:hidden; }
+  .bar-fill  { height:100%; background:linear-gradient(90deg,var(--terracotta),var(--terracotta-light)); border-radius:99px; transition:width 0.6s cubic-bezier(.4,0,.2,1); width:0%; }
+
+  /* ── SECTIONS ── */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display:grid; grid-template-columns:1fr 380px;
+    gap:24px; padding:24px 48px 48px;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background:white; border-radius:16px;
+    border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden;
+  }
+  .panel-header {
+    padding:20px 28px; border-bottom:1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--deep);
+  }
+  .panel-header h2 { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:700; color:var(--cream); }
+  .panel-header .panel-sub { font-family:'DM Mono',monospace; font-size:0.65rem; color:rgba(245,240,232,0.4); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+
+  /* ── FORMS ── */
+  .add-form {
+    padding:20px 28px; background:rgba(232,220,200,0.3);
+    border-bottom:1px solid var(--border);
+    display:grid; gap:10px; align-items:end;
+  }
+  .add-form.expense-form { grid-template-columns:1fr 1fr auto auto auto; }
+  .form-group { display:flex; flex-direction:column; gap:4px; }
+  .form-group label { font-family:'DM Mono',monospace; font-size:0.6rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+  input, select {
+    background:white; border:1px solid var(--border); border-radius:8px;
+    padding:9px 12px; font-family:'DM Sans',sans-serif; font-size:0.875rem;
+    color:var(--deep); outline:none; transition:border-color 0.2s;
+  }
+  input:focus, select:focus { border-color:var(--terracotta); }
+  input::placeholder { color:var(--muted); opacity:0.5; }
+
+  .btn {
+    border:none; border-radius:8px; padding:9px 18px;
+    font-family:'DM Sans',sans-serif; font-size:0.875rem; font-weight:500;
+    cursor:pointer; transition:all 0.2s; white-space:nowrap;
+  }
+  .btn-primary { background:var(--terracotta); color:white; }
+  .btn-primary:hover { background:var(--terracotta-light); transform:translateY(-1px); }
+  .btn-secondary { background:var(--sand); color:var(--mid); border:1px solid var(--border); }
+  .btn-secondary:hover { background:var(--mid); color:var(--cream); }
+  .btn-sm { padding:5px 10px; font-size:0.75rem; border-radius:6px; }
+  .btn-danger { background:rgba(176,58,46,0.1); color:var(--red); border:1px solid rgba(176,58,46,0.2); }
+  .btn-danger:hover { background:var(--red); color:white; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    padding:12px 28px; border-bottom:1px solid var(--border);
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  }
+  .filter-chip {
+    font-family:'DM Mono',monospace; font-size:0.65rem;
+    text-transform:uppercase; letter-spacing:0.5px;
+    padding:5px 12px; border-radius:99px;
+    border:1px solid var(--border); background:white;
+    cursor:pointer; transition:all 0.2s; color:var(--muted);
+  }
+  .filter-chip.active, .filter-chip:hover { background:var(--deep); color:var(--cream); border-color:var(--deep); }
+
+  /* ── EXPENSE TABLE ── */
+  .expense-row {
+    display:grid;
+    grid-template-columns:32px 1fr 110px 110px 90px 80px;
+    align-items:center; padding:13px 28px;
+    border-bottom:1px solid rgba(60,46,26,0.06);
+    transition:background 0.15s; gap:8px;
+    animation:slideIn 0.25s ease forwards;
+  }
+  .expense-row:last-child { border-bottom:none; }
+  .expense-row:hover { background:rgba(232,220,200,0.2); }
+  .expense-row.header-row {
+    font-family:'DM Mono',monospace; font-size:0.6rem;
+    text-transform:uppercase; letter-spacing:1px; color:var(--muted);
+    padding-top:10px; padding-bottom:10px; background:rgba(232,220,200,0.2);
+    animation:none;
+  }
+  .cat-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin:auto; }
+  .exp-name { font-weight:500; font-size:0.9rem; }
+  .exp-sub  { font-size:0.72rem; color:var(--muted); margin-top:1px; font-family:'DM Mono',monospace; }
+  .exp-amount { font-family:'DM Mono',monospace; font-size:0.9rem; font-weight:500; text-align:right; }
+  .exp-date   { font-family:'DM Mono',monospace; font-size:0.75rem; color:var(--muted); }
+  .status-badge {
+    display:inline-block; padding:3px 10px; border-radius:99px;
+    font-size:0.65rem; font-family:'DM Mono',monospace;
+    text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .status-paid    { background:rgba(74,124,89,0.12); color:var(--green); }
+  .status-pending { background:rgba(196,98,45,0.12); color:var(--terracotta); }
+  .empty-state { padding:48px; text-align:center; color:var(--muted); font-family:'DM Mono',monospace; font-size:0.8rem; }
+  .empty-state .empty-icon { font-size:2.5rem; margin-bottom:12px; opacity:0.4; }
+
+  /* cat colours */
+  .cat-kitchen     { background:#c4622d; }
+  .cat-bathroom    { background:#4a7c59; }
+  .cat-flooring    { background:#8b6f47; }
+  .cat-painting    { background:#5b7fa6; }
+  .cat-electrical  { background:#c4a826; }
+  .cat-plumbing    { background:#6b4fa0; }
+  .cat-landscaping { background:#4a8c6e; }
+  .cat-structural  { background:#8c3a3a; }
+  .cat-appliances  { background:#3a6b8c; }
+  .cat-other       { background:#7a7a7a; }
+
+  /* ── CHECKLIST ── */
+  .checklist-panel { display:flex; flex-direction:column; }
+  .checklist-add { padding:16px 20px; background:rgba(232,220,200,0.3); border-bottom:1px solid var(--border); display:flex; gap:8px; }
+  .checklist-add input { flex:1; }
+  .checklist-body { flex:1; overflow-y:auto; max-height:520px; }
+  .section-label { font-family:'DM Mono',monospace; font-size:0.6rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); padding:10px 20px 6px; }
+  .check-item {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 20px; border-bottom:1px solid rgba(60,46,26,0.05);
+    transition:background 0.15s; cursor:pointer;
+  }
+  .check-item:hover { background:rgba(232,220,200,0.2); }
+  .check-item.done .check-text { text-decoration:line-through; color:var(--muted); }
+  .check-box {
+    width:20px; height:20px; border-radius:6px; border:2px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s; background:white;
+  }
+  .check-item.done .check-box { background:var(--green); border-color:var(--green); color:white; }
+  .check-box svg { display:none; }
+  .check-item.done .check-box svg { display:block; }
+  .check-text { font-size:0.875rem; flex:1; }
+  .check-delete { background:none; border:none; cursor:pointer; color:var(--muted); opacity:0; font-size:1rem; padding:0 4px; transition:opacity 0.15s,color 0.15s; }
+  .check-item:hover .check-delete { opacity:1; }
+  .check-delete:hover { color:var(--red); }
+  .checklist-footer { padding:12px 20px; border-top:1px solid var(--border); font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); display:flex; justify-content:space-between; }
+
+  /* ── SHOPPING LIST ── */
+  .shop-page { padding:24px 48px 48px; }
+  .store-tabs-wrap {
+    background:white; border-radius:16px;
+    border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden;
+  }
+  .store-tab-bar {
+    background:var(--deep); display:flex; align-items:center;
+    overflow-x:auto; gap:0; padding:0 16px;
+    scrollbar-width:none;
+  }
+  .store-tab-bar::-webkit-scrollbar { display:none; }
+  .store-tab {
+    font-family:'DM Mono',monospace; font-size:0.68rem;
+    text-transform:uppercase; letter-spacing:1px;
+    padding:14px 20px; color:rgba(245,240,232,0.4);
+    cursor:pointer; border-bottom:3px solid transparent;
+    transition:all 0.2s; white-space:nowrap; flex-shrink:0;
+    user-select:none;
+  }
+  .store-tab:hover  { color:rgba(245,240,232,0.8); }
+  .store-tab.active { color:var(--terracotta-light); border-bottom-color:var(--terracotta-light); }
+  .store-tab-add {
+    margin-left:auto; padding:6px 14px;
+    background:rgba(196,98,45,0.2); border:1px solid rgba(196,98,45,0.4);
+    border-radius:8px; color:var(--terracotta-light);
+    font-family:'DM Mono',monospace; font-size:0.65rem;
+    letter-spacing:1px; text-transform:uppercase;
+    cursor:pointer; transition:all 0.2s; flex-shrink:0; margin-right:4px;
+  }
+  .store-tab-add:hover { background:var(--terracotta); color:white; }
+
+  .store-content { padding:0; }
+
+  /* store header strip */
+  .store-header-strip {
+    padding:16px 24px;
+    background:rgba(232,220,200,0.25);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .store-name-display {
+    font-family:'Playfair Display',serif;
+    font-size:1.3rem; font-weight:700; color:var(--deep);
+    display:flex; align-items:center; gap:10px;
+  }
+  .store-emoji { font-size:1.5rem; }
+  .store-stats { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .btn-delete-store { font-size:0.7rem; }
+
+  /* add item row */
+  .shop-add-row {
+    padding:14px 24px; background:rgba(232,220,200,0.15);
+    border-bottom:1px solid var(--border);
+    display:flex; gap:10px; align-items:center;
+  }
+  .shop-add-row input { flex:2; }
+  .shop-add-row input.qty-inp { flex:0 0 80px; text-align:center; }
+  .shop-add-row input.note-inp { flex:1.5; }
+
+  /* item list */
+  .shop-item {
+    display:grid;
+    grid-template-columns:36px 1fr auto 120px 60px;
+    align-items:center; gap:10px;
+    padding:11px 24px;
+    border-bottom:1px solid rgba(60,46,26,0.05);
+    transition:background 0.15s;
+    animation:slideIn 0.2s ease forwards;
+  }
+  .shop-item:hover { background:rgba(232,220,200,0.15); }
+  .shop-item:last-child { border-bottom:none; }
+  .shop-item.got .shop-item-name { text-decoration:line-through; color:var(--muted); }
+  .shop-item.got .shop-item-note { text-decoration:line-through; }
+
+  .shop-check-box {
+    width:22px; height:22px; border-radius:50%;
+    border:2px solid var(--border); background:white;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all 0.2s; flex-shrink:0;
+  }
+  .shop-check-box:hover { border-color:var(--green); }
+  .shop-item.got .shop-check-box { background:var(--green); border-color:var(--green); }
+  .shop-check-box svg { display:none; }
+  .shop-item.got .shop-check-box svg { display:block; }
+
+  .shop-item-main { min-width:0; }
+  .shop-item-name { font-size:0.9rem; font-weight:500; }
+  .shop-item-note { font-size:0.72rem; color:var(--muted); margin-top:1px; font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .shop-qty-badge {
+    font-family:'DM Mono',monospace; font-size:0.72rem;
+    background:var(--sand); color:var(--mid);
+    padding:3px 10px; border-radius:99px; white-space:nowrap; text-align:center;
+  }
+  .priority-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .priority-high   { background:#c4622d; }
+  .priority-medium { background:#c4a826; }
+  .priority-low    { background:#4a7c59; }
+
+  .shop-item-actions { display:flex; gap:6px; justify-content:flex-end; }
+
+  /* store summary footer */
+  .store-footer {
+    padding:12px 24px; border-top:1px solid var(--border);
+    background:rgba(232,220,200,0.15);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted);
+    text-transform:uppercase; letter-spacing:1px;
+  }
+  .clear-got { background:none; border:none; font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; cursor:pointer; transition:color 0.15s; }
+  .clear-got:hover { color:var(--red); }
+
+  /* add store modal */
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(26,18,8,0.6); z-index:100;
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:white; border-radius:16px; padding:32px;
+    width:380px; box-shadow:0 20px 60px rgba(26,18,8,0.3);
+    animation:slideIn 0.25s ease;
+  }
+  .modal h3 { font-family:'Playfair Display',serif; font-size:1.3rem; margin-bottom:20px; }
+  .modal .form-group { margin-bottom:14px; }
+  .modal .form-group label { display:block; margin-bottom:4px; }
+  .modal input, .modal select { width:100%; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .emoji-grid {
+    display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:8px;
+  }
+  .emoji-opt {
+    font-size:1.3rem; text-align:center; padding:6px; border-radius:8px;
+    cursor:pointer; border:2px solid transparent; transition:all 0.15s;
+  }
+  .emoji-opt:hover, .emoji-opt.selected { border-color:var(--terracotta); background:rgba(196,98,45,0.08); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes slideIn {
+    from { opacity:0; transform:translateY(-6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── BOTTOM NAV (mobile) ── */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+    background: var(--deep);
+    border-top: 1px solid rgba(245,240,232,0.1);
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mobile-nav-inner {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+  }
+  .mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4px;
+    padding: 10px 8px 8px;
+    cursor: pointer;
+    color: rgba(245,240,232,0.38);
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .mobile-nav-item.active { color: var(--terracotta-light); }
+  .mobile-nav-item .nav-icon { font-size: 1.35rem; line-height: 1; }
+  .mobile-nav-item .nav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+
+  /* ── TABLET ── */
+  @media(max-width:1100px){
+    .summary { grid-template-columns:repeat(2,1fr); }
+    .main-grid { grid-template-columns:1fr; }
+  }
+
+  /* ── MOBILE ── */
+  @media(max-width:700px){
+    /* body padding for bottom nav */
+    body { padding-bottom: 70px; }
+
+    /* hide desktop nav, show mobile nav */
+    .nav-tabs { display: none; }
+    .mobile-nav { display: block; }
+
+    /* header */
+    header { padding: 16px 16px 14px; gap: 10px; flex-wrap: wrap; }
+    .header-left h1 { font-size: 1.7rem; }
+    .header-left p  { font-size: 0.62rem; margin-top: 3px; }
+    .purchase-badge { padding: 8px 14px; }
+    .purchase-badge .amount { font-size: 1.2rem; }
+    .logout-btn { padding: 6px 12px; font-size: 0.6rem; }
+
+    /* section padding */
+    .summary, .progress-section, .main-grid, .shop-page {
+      padding-left: 12px; padding-right: 12px;
+    }
+    .summary { padding-top: 16px; gap: 10px; }
+    .progress-section { padding-top: 12px; }
+    .main-grid { padding-top: 12px; padding-bottom: 16px; gap: 12px; }
+
+    /* summary cards */
+    .summary { grid-template-columns: repeat(2,1fr); }
+    .card { padding: 14px 16px; }
+    .card .card-value { font-size: 1.3rem; }
+
+    /* expense form — stack everything */
+    .add-form.expense-form {
+      grid-template-columns: 1fr 1fr;
+      padding: 14px 16px;
+    }
+    .add-form.expense-form .form-group:first-child { grid-column: span 2; }
+
+    /* expense rows — simpler on mobile */
+    .expense-row {
+      grid-template-columns: 20px 1fr auto auto;
+      padding: 11px 16px; gap: 6px;
+    }
+    .expense-row.header-row { display: none; }
+    .expense-row .exp-date  { display: none; }
+    .status-badge { font-size: 0.6rem; padding: 2px 8px; }
+
+    /* panel headers */
+    .panel-header { padding: 14px 16px; }
+    .filter-bar   { padding: 10px 16px; gap: 6px; }
+    .filter-chip  { font-size: 0.6rem; padding: 4px 10px; }
+
+    /* checklist */
+    .checklist-add { padding: 12px 16px; }
+    .check-item    { padding: 12px 16px; }
+    .check-box     { width: 24px; height: 24px; flex-shrink: 0; } /* bigger tap target */
+
+    /* shopping page */
+    .shop-page { padding: 12px 12px 16px; }
+    .store-header-strip { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+    .store-name-display { font-size: 1.1rem; }
+    .shop-add-row {
+      padding: 12px 16px; flex-wrap: wrap; gap: 8px;
+    }
+    .shop-add-row input        { flex: 1 1 100%; }
+    .shop-add-row .qty-inp     { flex: 1 1 calc(50% - 4px); }
+    .shop-add-row .note-inp    { flex: 1 1 100%; }
+    .shop-add-row select       { flex: 1 1 calc(50% - 4px); }
+    .shop-add-row .btn         { flex: 1 1 100%; padding: 12px; }
+
+    .shop-item {
+      grid-template-columns: 44px 1fr auto 44px;
+      padding: 12px 16px;
+    }
+    .shop-check-box { width: 28px; height: 28px; } /* bigger tap target */
+    .priority-dot { display: none; }
+    .shop-qty-badge { font-size: 0.68rem; padding: 2px 8px; }
+
+    /* store tab bar — scrollable */
+    .store-tab-bar { padding: 0 12px; }
+    .store-tab { padding: 12px 14px; font-size: 0.62rem; }
+    .store-tab-add { font-size: 0.6rem; padding: 5px 10px; }
+
+    /* modal */
+    .modal { width: calc(100vw - 32px); padding: 24px 20px; border-radius: 20px; }
+    .emoji-grid { grid-template-columns: repeat(7,1fr); gap: 4px; }
+    .emoji-opt  { font-size: 1.2rem; padding: 5px; }
+
+    /* login card */
+    .login-card { padding: 40px 28px 36px; }
+    .login-logo { font-size: 2.1rem; }
+  }
+
+  /* very small phones */
+  @media(max-width:380px){
+    .summary { grid-template-columns: 1fr 1fr; }
+    .card .card-value { font-size: 1.1rem; }
+    header { padding: 14px 12px; }
+    .login-card { padding: 32px 20px 28px; }
+  }
+
+  /* ── SYNC STATUS ── */
+  #sync-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted);
+    transition: color 0.3s;
+    position: relative; z-index: 1;
+    min-height: 14px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  LOGIN SCREEN                                 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="login-screen" class="visible">
+  <div class="login-card">
+    <div class="login-logo">Reno<span>Tracker</span></div>
+    <div class="login-address">High Wycombe · Kalamunda</div>
+
+    <div id="login-fields">
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="login-pw" placeholder="Enter your password" onkeydown="if(event.key==='Enter') attemptLogin()">
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button class="btn-login" onclick="attemptLogin()">Unlock →</button>
+      <div class="login-mode-toggle">First time? <span onclick="showSetup()">Create a password</span></div>
+    </div>
+
+    <div id="setup-fields" style="display:none">
+      <div class="login-field">
+        <label>Create Password</label>
+        <input type="password" id="setup-pw1" placeholder="Choose a password">
+      </div>
+      <div class="login-field">
+        <label>Confirm Password</label>
+        <input type="password" id="setup-pw2" placeholder="Repeat password" onkeydown="if(event.key==='Enter') createPassword()">
+      </div>
+      <div class="login-error" id="setup-error"></div>
+      <button class="btn-login" onclick="createPassword()">Set Password & Enter →</button>
+      <div class="login-mode-toggle">Already have one? <span onclick="showLogin()">Go back</span></div>
+    </div>
+
+    <div class="login-hint" id="reset-hint" onclick="resetPassword()">Forgot password? Reset all data</div>
+  </div>
+</div>
+
+<header>
+  <div class="header-left">
+    <h1>Reno<span>Tracker</span></h1>
+    <p>High Wycombe, Kalamunda · Western Australia</p>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;position:relative;z-index:1">
+    <button class="logout-btn" onclick="logout()">&#x23CE; Lock</button>
+    <div id="sync-status"></div>
+    <div class="purchase-badge">
+      <div class="label">Purchase Price</div>
+      <div class="amount">$850,000</div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav-tabs">
+  <div class="nav-tab active" onclick="showSection('expenses')">💰 Expenses</div>
+  <div class="nav-tab" onclick="showSection('shopping')">🛒 Shopping Lists</div>
+  <div class="nav-tab" onclick="showSection('checklist-section')">✅ Checklist</div>
+</nav>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  EXPENSES SECTION                             -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="expenses" class="section active">
+
+  <div class="summary">
+    <div class="card accent-terra">
+      <div class="card-label">Total Spent</div>
+      <div class="card-value" id="total-spent">$0</div>
+      <div class="card-sub">across all categories</div>
+    </div>
+    <div class="card accent-green">
+      <div class="card-label">Paid</div>
+      <div class="card-value" id="total-paid">$0</div>
+      <div class="card-sub">invoices settled</div>
+    </div>
+    <div class="card accent-red">
+      <div class="card-label">Pending</div>
+      <div class="card-value" id="total-pending">$0</div>
+      <div class="card-sub">awaiting payment</div>
+    </div>
+    <div class="card accent-mid">
+      <div class="card-label">Expenses</div>
+      <div class="card-value" id="total-count">0</div>
+      <div class="card-sub">items logged</div>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-bar-wrap">
+      <div class="bar-header">
+        <span class="bar-title">Renovation Budget vs Property Value</span>
+        <span class="bar-pct" id="bar-pct">0%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Renovation Expenses</h2>
+          <div class="panel-sub">Log every cost, big or small</div>
+        </div>
+      </div>
+
+      <div class="add-form expense-form">
+        <div class="form-group" style="grid-column:span 2">
+          <label>Description</label>
+          <input type="text" id="inp-desc" placeholder="e.g. Kitchen cabinets supply & install">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="inp-cat">
+            <option value="kitchen">🍳 Kitchen</option>
+            <option value="bathroom">🚿 Bathroom</option>
+            <option value="flooring">🪵 Flooring</option>
+            <option value="painting">🎨 Painting</option>
+            <option value="electrical">⚡ Electrical</option>
+            <option value="plumbing">🔧 Plumbing</option>
+            <option value="landscaping">🌿 Landscaping</option>
+            <option value="structural">🏗️ Structural</option>
+            <option value="appliances">📦 Appliances</option>
+            <option value="other">📎 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount ($)</label>
+          <input type="number" id="inp-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inp-date">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="inp-status">
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="addExpense()" style="align-self:end">+ Add</button>
+      </div>
+
+      <div class="filter-bar">
+        <span class="filter-chip active" onclick="setFilter(this,'all')">All</span>
+        <span class="filter-chip" onclick="setFilter(this,'kitchen')">🍳 Kitchen</span>
+        <span class="filter-chip" onclick="setFilter(this,'bathroom')">🚿 Bath</span>
+        <span class="filter-chip" onclick="setFilter(this,'flooring')">🪵 Flooring</span>
+        <span class="filter-chip" onclick="setFilter(this,'painting')">🎨 Paint</span>
+        <span class="filter-chip" onclick="setFilter(this,'electrical')">⚡ Electrical</span>
+        <span class="filter-chip" onclick="setFilter(this,'plumbing')">🔧 Plumbing</span>
+        <span class="filter-chip" onclick="setFilter(this,'landscaping')">🌿 Garden</span>
+        <span class="filter-chip" onclick="setFilter(this,'structural')">🏗️ Structural</span>
+        <span class="filter-chip" onclick="setFilter(this,'appliances')">📦 Appliances</span>
+        <span class="filter-chip" onclick="setFilter(this,'other')">📎 Other</span>
+      </div>
+
+      <div class="expense-row header-row">
+        <div></div><div>Description</div><div>Category</div>
+        <div style="text-align:right">Amount</div><div>Date</div><div>Status</div>
+      </div>
+      <div id="expense-list">
+        <div class="empty-state"><div class="empty-icon">🏠</div><div>No expenses yet. Add your first one above.</div></div>
+      </div>
+    </div>
+
+    <!-- checklist sidebar on expenses tab -->
+    <div class="panel checklist-panel">
+      <div class="panel-header">
+        <div><h2>Reno Checklist</h2><div class="panel-sub">Tasks & milestones</div></div>
+      </div>
+      <div class="checklist-add">
+        <input type="text" id="check-inp" placeholder="Add a task…" onkeydown="if(event.key==='Enter') addCheck()">
+        <button class="btn btn-primary btn-sm" onclick="addCheck()">+ Add</button>
+      </div>
+      <div class="checklist-body" id="checklist-body"></div>
+      <div class="checklist-footer">
+        <span id="check-done-count">0 done</span>
+        <span id="check-total-count">0 total</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  SHOPPING SECTION                             -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="shopping" class="section">
+  <div class="shop-page">
+    <div class="store-tabs-wrap">
+
+      <div class="store-tab-bar" id="store-tab-bar">
+        <!-- tabs rendered by JS -->
+        <button class="store-tab-add" onclick="openAddStore()">+ New Store</button>
+      </div>
+
+      <div class="store-content" id="store-content">
+        <!-- rendered by JS -->
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  FULL CHECKLIST SECTION                       -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="checklist-section" class="section">
+  <div class="shop-page">
+    <div class="store-tabs-wrap">
+      <div class="panel-header" style="border-radius:0">
+        <div><h2>Renovation Checklist</h2><div class="panel-sub">All tasks & milestones</div></div>
+      </div>
+      <div class="checklist-add" style="padding:16px 24px">
+        <input type="text" id="check-inp2" placeholder="Add a task…" onkeydown="if(event.key==='Enter') addCheck2()">
+        <button class="btn btn-primary btn-sm" onclick="addCheck2()">+ Add</button>
+      </div>
+      <div id="checklist-body2" style="max-height:none"></div>
+      <div class="checklist-footer">
+        <span id="check-done-count2">0 done</span>
+        <span id="check-total-count2">0 total</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  ADD STORE MODAL                              -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <h3>Add a Store</h3>
+    <div class="form-group">
+      <label>Store Name</label>
+      <input type="text" id="modal-store-name" placeholder="e.g. Total Tools">
+    </div>
+    <div class="form-group">
+      <label>Pick an Icon</label>
+      <div class="emoji-grid" id="emoji-grid">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="confirmAddStore()">Add Store</button>
+      <button class="btn btn-secondary" onclick="closeAddStore()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  FIREBASE SDK                                 -->
+<!-- ══════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }            from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection }
+                                    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ════════════════════════════════════════
+//  🔧 YOUR FIREBASE CONFIG — FILL THIS IN
+//  Get it from: Firebase Console → Project Settings → Your Apps → SDK setup
+// ════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyB8TPSxHsDBjXblPCOqoA0T6C0TU90FkSc",
+  authDomain:        "reno-tracker-aa090.firebaseapp.com",
+  projectId:         "reno-tracker-aa090",
+  storageBucket:     "reno-tracker-aa090.appspot.com",
+  messagingSenderId: "572020231472",
+  appId:             "1:572020231472:web:2d3fa5fa235cd6df2f0cf5"
+};
+
+// ── DOC PATH — change "reno-tracker" if you want a different collection name
+const DOC_ID   = "reno-tracker";   // Firestore document that holds all your data
+const COLL     = "projects";       // Firestore collection
+
+// ════════════════════════════════════════
+//  FIREBASE INIT
+// ════════════════════════════════════════
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const docRef = doc(db, COLL, DOC_ID);
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let expenses = [];
+let checks   = null;   // null until loaded
+let stores   = null;
+let activeExpFilter = 'all';
+let activeStoreId   = null;
+let selectedEmoji   = '🏪';
+let _firestoreReady = false;
+
+// ════════════════════════════════════════
+//  SAVE TO FIRESTORE  (debounced 600ms)
+// ════════════════════════════════════════
+let _saveTimer = null;
+function save() {
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(_doSave, 600);
+}
+
+async function _doSave() {
+  try {
+    await setDoc(docRef, {
+      expenses: expenses,
+      checks:   checks   || [],
+      stores:   stores   || [],
+      updatedAt: Date.now()
+    });
+  } catch(e) {
+    console.error("Firestore save error:", e);
+    // Fallback: save locally so no data is lost
+    localStorage.setItem('reno-expenses', JSON.stringify(expenses));
+    localStorage.setItem('reno-checks',   JSON.stringify(checks));
+    localStorage.setItem('reno-stores',   JSON.stringify(stores));
+  }
+}
+
+// ════════════════════════════════════════
+//  LOAD + REAL-TIME LISTENER
+// ════════════════════════════════════════
+function showSyncStatus(msg, color='var(--muted)') {
+  let el = document.getElementById('sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+async function initFirestore() {
+  showSyncStatus('⟳ Connecting…');
+  try {
+    // Load once first so UI renders immediately
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const d  = snap.data();
+      expenses = d.expenses || [];
+      checks   = d.checks?.length   ? d.checks   : null;
+      stores   = d.stores?.length   ? d.stores   : null;
+    }
+    if (!checks)  checks  = defaultChecks();
+    if (!stores)  stores  = defaultStores();
+    _firestoreReady = true;
+    renderAll();
+    showSyncStatus('✓ Synced', 'var(--green)');
+    setTimeout(()=>showSyncStatus(''), 3000);
+  } catch(e) {
+    // Firestore not configured yet — fall back to localStorage
+    console.warn("Firestore unavailable, using localStorage:", e.message);
+    expenses = JSON.parse(localStorage.getItem('reno-expenses') || '[]');
+    checks   = JSON.parse(localStorage.getItem('reno-checks')   || 'null') || defaultChecks();
+    stores   = JSON.parse(localStorage.getItem('reno-stores')   || 'null') || defaultStores();
+    _firestoreReady = false;
+    renderAll();
+    showSyncStatus('⚠ Offline (localStorage)', '#c4a826');
+    return;
+  }
+
+  // Real-time listener — updates UI when another device saves
+  onSnapshot(docRef, (snap) => {
+    if (!snap.exists()) return;
+    const d = snap.data();
+    expenses = d.expenses || [];
+    checks   = d.checks?.length ? d.checks : defaultChecks();
+    stores   = d.stores?.length ? d.stores : defaultStores();
+    renderAll();
+    showSyncStatus('✓ Synced', 'var(--green)');
+    setTimeout(()=>showSyncStatus(''), 2000);
+  }, (err) => {
+    console.error("Snapshot error:", err);
+    showSyncStatus('⚠ Sync error', 'var(--red)');
+  });
+}
+
+function renderAll() {
+  renderExpenses();
+  renderSummary();
+  renderChecklist();
+  // Only render shopping/checklist2 if those panels are active
+  const shopEl = document.getElementById('shopping');
+  if (shopEl && shopEl.classList.contains('active')) renderShop();
+  const chk2El = document.getElementById('checklist-section');
+  if (chk2El && chk2El.classList.contains('active')) renderChecklist2();
+}
+
+// ════════════════════════════════════════
+//  LOGIN / AUTH  (stays in localStorage — intentional)
+// ════════════════════════════════════════
+(function initAuth() {
+  const hasPassword = localStorage.getItem('reno-password');
+  if (!hasPassword) {
+    showSetup();
+    return;
+  }
+  const session = sessionStorage.getItem('reno-unlocked');
+  if (session === '1') {
+    unlockApp();
+    initFirestore();
+  } else {
+    // show login screen (already visible by default)
+  }
+})();
+
+function attemptLogin() {
+  const pw    = document.getElementById('login-pw').value;
+  const saved = localStorage.getItem('reno-password');
+  if (!saved) { showSetup(); return; }
+  if (pw === saved) {
+    sessionStorage.setItem('reno-unlocked','1');
+    unlockApp();
+    initFirestore();
+  } else {
+    const inp = document.getElementById('login-pw');
+    document.getElementById('login-error').textContent = 'Incorrect password. Try again.';
+    inp.classList.add('shake');
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('shake'), 500);
+    inp.focus();
+  }
+}
+
+function showSetup() {
+  document.getElementById('login-fields').style.display = 'none';
+  document.getElementById('setup-fields').style.display = 'block';
+  document.getElementById('reset-hint').style.display   = 'none';
+  setTimeout(() => document.getElementById('setup-pw1').focus(), 100);
+}
+
+function showLogin() {
+  document.getElementById('login-fields').style.display = 'block';
+  document.getElementById('setup-fields').style.display = 'none';
+  document.getElementById('reset-hint').style.display   = 'block';
+  setTimeout(() => document.getElementById('login-pw').focus(), 100);
+}
+
+function createPassword() {
+  const p1 = document.getElementById('setup-pw1').value;
+  const p2 = document.getElementById('setup-pw2').value;
+  const err = document.getElementById('setup-error');
+  if (p1.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+  if (p1 !== p2)     {
+    err.textContent = 'Passwords do not match.';
+    document.getElementById('setup-pw2').classList.add('shake');
+    setTimeout(()=>document.getElementById('setup-pw2').classList.remove('shake'),500);
+    return;
+  }
+  localStorage.setItem('reno-password', p1);
+  sessionStorage.setItem('reno-unlocked','1');
+  unlockApp();
+  initFirestore();
+}
+
+function unlockApp() {
+  document.getElementById('login-screen').classList.remove('visible');
+}
+
+function logout() {
+  sessionStorage.removeItem('reno-unlocked');
+  document.getElementById('login-pw') && (document.getElementById('login-pw').value = '');
+  document.getElementById('login-error') && (document.getElementById('login-error').textContent = '');
+  document.getElementById('login-screen').classList.add('visible');
+  showLogin();
+  setTimeout(() => document.getElementById('login-pw').focus(), 300);
+}
+
+function resetPassword() {
+  if (!confirm('This will DELETE your password and ALL local data. Cloud data is kept safe. Are you sure?')) return;
+  localStorage.clear(); sessionStorage.clear();
+  location.reload();
+}
+
+// ════════════════════════════════════════
+//  DEFAULT DATA
+// ════════════════════════════════════════
+function defaultChecks() {
+  return [
+    {id:1,  text:'Get building inspection report', done:false},
+    {id:2,  text:'Hire licensed builder / project manager', done:false},
+    {id:3,  text:'Obtain council permits (if required)', done:false},
+    {id:4,  text:'Set renovation budget', done:false},
+    {id:5,  text:'Kitchen — measure & plan layout', done:false},
+    {id:6,  text:'Kitchen — order cabinets & benchtop', done:false},
+    {id:7,  text:'Bathrooms — choose tiles & fixtures', done:false},
+    {id:8,  text:'Flooring — choose material & get quotes', done:false},
+    {id:9,  text:'Electrical — safety check & upgrades', done:false},
+    {id:10, text:'Plumbing — check pipes & hot water system', done:false},
+    {id:11, text:'Interior painting — colours selected', done:false},
+    {id:12, text:'Exterior painting / render', done:false},
+    {id:13, text:'Landscaping — front & back yard plan', done:false},
+    {id:14, text:'Reticulation system check', done:false},
+    {id:15, text:'Final council sign-off', done:false},
+  ];
+}
+
+function defaultStores() {
+  return [
+    { id:'bunnings',      name:'Bunnings Warehouse',  emoji:'🟢', items:[] },
+    { id:'gyprock',       name:'Gyprock / CSR',        emoji:'🧱', items:[] },
+    { id:'inspirations',  name:'Inspirations Paint',   emoji:'🎨', items:[] },
+    { id:'beaumont',      name:'Beaumont Tiles',        emoji:'🪟', items:[] },
+    { id:'ikea',          name:'IKEA',                  emoji:'💛', items:[] },
+    { id:'tradelink',     name:'Tradelink Plumbing',    emoji:'🔧', items:[] },
+    { id:'mitre10',       name:'Mitre 10',              emoji:'🔨', items:[] },
+  ];
+}
+
+// ════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.querySelectorAll('.mobile-nav-item').forEach(i => i.classList.remove('active'));
+  const mItem = document.getElementById('mnav-' + id);
+  if (mItem) mItem.classList.add('active');
+  if (id === 'shopping') renderShop();
+  if (id === 'checklist-section') renderChecklist2();
+}
+
+// ════════════════════════════════════════
+//  EXPENSES
+// ════════════════════════════════════════
+const catNames = {
+  kitchen:'Kitchen',bathroom:'Bathroom',flooring:'Flooring',
+  painting:'Painting',electrical:'Electrical',plumbing:'Plumbing',
+  landscaping:'Landscaping',structural:'Structural',appliances:'Appliances',other:'Other'
+};
+const fmt = n => '$' + Number(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function addExpense() {
+  const desc   = document.getElementById('inp-desc').value.trim();
+  const cat    = document.getElementById('inp-cat').value;
+  const amount = parseFloat(document.getElementById('inp-amount').value);
+  const date   = document.getElementById('inp-date').value;
+  const status = document.getElementById('inp-status').value;
+  if (!desc || isNaN(amount) || amount <= 0) { document.getElementById('inp-desc').focus(); return; }
+  expenses.unshift({ id:Date.now(), desc, cat, amount, date:date||today(), status });
+  save(); renderExpenses(); renderSummary();
+  document.getElementById('inp-desc').value = '';
+  document.getElementById('inp-amount').value = '';
+}
+
+function deleteExpense(id) { expenses = expenses.filter(e=>e.id!==id); save(); renderExpenses(); renderSummary(); }
+function toggleStatus(id) {
+  const e = expenses.find(x=>x.id===id);
+  if (e) { e.status = e.status==='paid'?'pending':'paid'; save(); renderExpenses(); renderSummary(); }
+}
+function setFilter(el, filter) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); activeExpFilter = filter; renderExpenses();
+}
+function renderExpenses() {
+  const list     = document.getElementById('expense-list');
+  const filtered = activeExpFilter==='all' ? expenses : expenses.filter(e=>e.cat===activeExpFilter);
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🏠</div><div>${expenses.length?'No expenses in this category.':'No expenses yet. Add your first one above.'}</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(e=>`
+    <div class="expense-row">
+      <div class="cat-dot cat-${e.cat}"></div>
+      <div><div class="exp-name">${esc(e.desc)}</div><div class="exp-sub">${catNames[e.cat]}</div></div>
+      <div class="exp-date">${fmtDate(e.date)}</div>
+      <div class="exp-amount">${fmt(e.amount)}</div>
+      <div><span class="status-badge status-${e.status}" onclick="toggleStatus(${e.id})" style="cursor:pointer" title="Click to toggle">${e.status}</span></div>
+      <div><button class="btn btn-sm btn-danger" onclick="deleteExpense(${e.id})">✕</button></div>
+    </div>`).join('');
+}
+function renderSummary() {
+  const total   = expenses.reduce((s,e)=>s+e.amount,0);
+  const paid    = expenses.filter(e=>e.status==='paid').reduce((s,e)=>s+e.amount,0);
+  const pending = expenses.filter(e=>e.status==='pending').reduce((s,e)=>s+e.amount,0);
+  document.getElementById('total-spent').textContent   = fmt(total);
+  document.getElementById('total-paid').textContent    = fmt(paid);
+  document.getElementById('total-pending').textContent = fmt(pending);
+  document.getElementById('total-count').textContent   = expenses.length;
+  const pct = Math.min((total/850000)*100,100);
+  document.getElementById('bar-fill').style.width = pct+'%';
+  document.getElementById('bar-pct').textContent   = pct.toFixed(1)+'%';
+}
+
+// ════════════════════════════════════════
+//  CHECKLIST
+// ════════════════════════════════════════
+function addCheck() {
+  const inp = document.getElementById('check-inp');
+  const t   = inp.value.trim(); if (!t) return;
+  checks.push({id:Date.now(),text:t,done:false}); inp.value='';
+  save(); renderChecklist(); renderChecklist2();
+}
+function addCheck2() {
+  const inp = document.getElementById('check-inp2');
+  const t   = inp.value.trim(); if (!t) return;
+  checks.push({id:Date.now(),text:t,done:false}); inp.value='';
+  save(); renderChecklist(); renderChecklist2();
+}
+function toggleCheck(id) {
+  const c=checks.find(x=>x.id===id); if(c){c.done=!c.done; save(); renderChecklist(); renderChecklist2();}
+}
+function deleteCheck(id) {
+  checks=checks.filter(c=>c.id!==id); save(); renderChecklist(); renderChecklist2();
+}
+function checkRow(c) {
+  return `<div class="check-item ${c.done?'done':''}" onclick="toggleCheck(${c.id})">
+    <div class="check-box"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <span class="check-text">${esc(c.text)}</span>
+    <button class="check-delete" onclick="event.stopPropagation();deleteCheck(${c.id})">✕</button>
+  </div>`;
+}
+function renderChecklist() {
+  const body=document.getElementById('checklist-body');
+  const todo=checks.filter(c=>!c.done), done=checks.filter(c=>c.done);
+  let h='';
+  if(todo.length) h+=`<div class="section-label">To Do (${todo.length})</div>`+todo.map(checkRow).join('');
+  if(done.length) h+=`<div class="section-label">Completed (${done.length})</div>`+done.map(checkRow).join('');
+  if(!checks.length) h=`<div class="empty-state" style="padding:32px"><div class="empty-icon">✅</div><div>Add tasks above.</div></div>`;
+  body.innerHTML=h;
+  document.getElementById('check-done-count').textContent=done.length+' done';
+  document.getElementById('check-total-count').textContent=checks.length+' total';
+}
+function renderChecklist2() {
+  const body=document.getElementById('checklist-body2');
+  if(!body) return;
+  const todo=checks.filter(c=>!c.done), done=checks.filter(c=>c.done);
+  let h='';
+  if(todo.length) h+=`<div class="section-label">To Do (${todo.length})</div>`+todo.map(checkRow).join('');
+  if(done.length) h+=`<div class="section-label">Completed (${done.length})</div>`+done.map(checkRow).join('');
+  if(!checks.length) h=`<div class="empty-state" style="padding:32px"><div class="empty-icon">✅</div><div>Add tasks above.</div></div>`;
+  body.innerHTML=h;
+  document.getElementById('check-done-count2').textContent=done.length+' done';
+  document.getElementById('check-total-count2').textContent=checks.length+' total';
+}
+
+// ════════════════════════════════════════
+//  SHOPPING
+// ════════════════════════════════════════
+function renderShop() {
+  if (!stores) return;
+  if (!activeStoreId || !stores.find(s=>s.id===activeStoreId)) {
+    activeStoreId = stores[0]?.id || null;
+  }
+  renderStoreTabs();
+  renderStoreContent();
+}
+
+function renderStoreTabs() {
+  const bar = document.getElementById('store-tab-bar');
+  const btn = bar.querySelector('.store-tab-add');
+  bar.innerHTML = '';
+  stores.forEach(s => {
+    const t = document.createElement('div');
+    t.className = 'store-tab' + (s.id===activeStoreId?' active':'');
+    t.textContent = s.emoji+' '+s.name;
+    t.onclick = () => { activeStoreId=s.id; renderShop(); };
+    bar.appendChild(t);
+  });
+  bar.appendChild(btn);
+}
+
+function renderStoreContent() {
+  const wrap = document.getElementById('store-content');
+  const store = stores.find(s=>s.id===activeStoreId);
+  if (!store) { wrap.innerHTML='<div class="empty-state" style="padding:48px"><div class="empty-icon">🛒</div><div>No stores yet. Add one above.</div></div>'; return; }
+
+  const got   = store.items.filter(i=>i.got).length;
+  const total = store.items.length;
+
+  wrap.innerHTML = `
+    <div class="store-header-strip">
+      <div class="store-name-display">
+        <span class="store-emoji">${store.emoji}</span>
+        ${esc(store.name)}
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="store-stats">${got}/${total} items ticked</div>
+        ${stores.length>1?`<button class="btn btn-sm btn-danger btn-delete-store" onclick="deleteStore('${store.id}')">Remove Store</button>`:''}
+      </div>
+    </div>
+
+    <div class="shop-add-row">
+      <input type="text" id="shop-item-name" placeholder="Item name…" onkeydown="if(event.key==='Enter') addShopItem('${store.id}')">
+      <input type="text" id="shop-item-qty"  class="qty-inp" placeholder="Qty / unit">
+      <select id="shop-item-priority">
+        <option value="medium">⚡ Med</option>
+        <option value="high">🔴 High</option>
+        <option value="low">🟢 Low</option>
+      </select>
+      <input type="text" id="shop-item-note" class="note-inp" placeholder="Note (optional)…">
+      <button class="btn btn-primary btn-sm" onclick="addShopItem('${store.id}')">+ Add</button>
+    </div>
+
+    <div id="shop-item-list">
+      ${renderShopItems(store)}
+    </div>
+
+    <div class="store-footer">
+      <span>${total - got} remaining · ${got} ticked off</span>
+      ${got>0?`<button class="clear-got" onclick="clearGot('${store.id}')">Clear ticked items</button>`:''}
+    </div>
+  `;
+}
+
+function renderShopItems(store) {
+  const pending = store.items.filter(i=>!i.got);
+  const got     = store.items.filter(i=>i.got);
+  if (!store.items.length) return `<div class="empty-state"><div class="empty-icon">🛒</div><div>No items yet. Add your first one above.</div></div>`;
+
+  let h = '';
+  if (pending.length) {
+    h += pending.map(i => shopItemRow(i, store.id)).join('');
+  }
+  if (got.length) {
+    h += `<div class="section-label" style="padding:10px 24px 6px">Ticked off (${got.length})</div>`;
+    h += got.map(i => shopItemRow(i, store.id)).join('');
+  }
+  return h;
+}
+
+function shopItemRow(i, storeId) {
+  return `<div class="shop-item ${i.got?'got':''}">
+    <div class="shop-check-box" onclick="toggleShopItem('${storeId}',${i.id})">
+      <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="shop-item-main">
+      <div class="shop-item-name">${esc(i.name)}</div>
+      ${i.note?`<div class="shop-item-note">${esc(i.note)}</div>`:''}
+    </div>
+    ${i.qty?`<div class="shop-qty-badge">${esc(i.qty)}</div>`:'<div></div>'}
+    <div class="priority-dot priority-${i.priority}" title="${i.priority} priority"></div>
+    <div class="shop-item-actions">
+      <button class="btn btn-sm btn-danger" onclick="deleteShopItem('${storeId}',${i.id})">✕</button>
+    </div>
+  </div>`;
+}
+
+function addShopItem(storeId) {
+  const name = document.getElementById('shop-item-name').value.trim();
+  if (!name) return;
+  const qty      = document.getElementById('shop-item-qty').value.trim();
+  const priority = document.getElementById('shop-item-priority').value;
+  const note     = document.getElementById('shop-item-note').value.trim();
+  const store    = stores.find(s=>s.id===storeId);
+  if (!store) return;
+  store.items.push({id:Date.now(), name, qty, priority, note, got:false});
+  save(); renderStoreContent();
+}
+
+function toggleShopItem(storeId, itemId) {
+  const store = stores.find(s=>s.id===storeId);
+  const item  = store?.items.find(i=>i.id===itemId);
+  if (item) { item.got=!item.got; save(); renderStoreContent(); }
+}
+
+function deleteShopItem(storeId, itemId) {
+  const store = stores.find(s=>s.id===storeId);
+  if (store) { store.items=store.items.filter(i=>i.id!==itemId); save(); renderStoreContent(); }
+}
+
+function clearGot(storeId) {
+  const store = stores.find(s=>s.id===storeId);
+  if (store) { store.items=store.items.filter(i=>!i.got); save(); renderShop(); }
+}
+
+function deleteStore(storeId) {
+  if (!confirm('Remove this store and all its items?')) return;
+  stores = stores.filter(s=>s.id!==storeId);
+  activeStoreId = stores[0]?.id||null;
+  save(); renderShop();
+}
+
+// ── ADD STORE MODAL ──
+const EMOJIS = ['🏪','🟢','🔨','🎨','🧱','💛','🔧','🌿','⚡','🪟','🛁','🏠','🪣','🔩','📦','🏗️','🚰','🌳','💡','🪵'];
+function openAddStore() {
+  selectedEmoji = '🏪';
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = EMOJIS.map(e=>`<div class="emoji-opt${e===selectedEmoji?' selected':''}" onclick="pickEmoji(this,'${e}')">${e}</div>`).join('');
+  document.getElementById('modal-store-name').value='';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-store-name').focus(),100);
+}
+function closeAddStore() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModal(e)   { if(e.target===document.getElementById('modal-overlay')) closeAddStore(); }
+function pickEmoji(el, emoji) {
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected'); selectedEmoji=emoji;
+}
+function confirmAddStore() {
+  const name = document.getElementById('modal-store-name').value.trim();
+  if (!name) { document.getElementById('modal-store-name').focus(); return; }
+  const id = 'store_'+Date.now();
+  stores.push({id, name, emoji:selectedEmoji, items:[]});
+  activeStoreId = id;
+  save(); closeAddStore(); renderShop();
+}
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) { if(!d)return''; const[y,m,day]=d.split('-'); return`${day}/${m}/${y}`; }
+
+// ════════════════════════════════════════
+//  INIT (non-auth UI)
+// ════════════════════════════════════════
+document.getElementById('inp-date').value = today();
+
+// Expose functions to global scope (needed because type="module" scopes them)
+Object.assign(window, {
+  attemptLogin, showSetup, showLogin, createPassword, logout, resetPassword,
+  addExpense, deleteExpense, toggleStatus, setFilter,
+  addCheck, addCheck2, toggleCheck, deleteCheck,
+  renderShop, renderStoreTabs, renderStoreContent,
+  addShopItem, toggleShopItem, deleteShopItem, clearGot, deleteStore,
+  openAddStore, closeAddStore, closeModal, pickEmoji, confirmAddStore,
+  showSection, mobileNav
+});
+
+// ════════════════════════════════════════
+//  MOBILE NAV
+// ════════════════════════════════════════
+function mobileNav(sectionId, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(sectionId).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  if (sectionId === 'shopping') renderShop();
+  if (sectionId === 'checklist-section') renderChecklist2();
+}
+
+</script>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  MOBILE BOTTOM NAV                            -->
+<!-- ══════════════════════════════════════════════ -->
+<nav class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-inner">
+    <div class="mobile-nav-item active" id="mnav-expenses" onclick="mobileNav('expenses', this)">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Expenses</span>
+    </div>
+    <div class="mobile-nav-item" id="mnav-shopping" onclick="mobileNav('shopping', this)">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Shopping</span>
+    </div>
+    <div class="mobile-nav-item" id="mnav-checklist-section" onclick="mobileNav('checklist-section', this)">
+      <span class="nav-icon">✅</span>
+      <span class="nav-label">Checklist</span>
+    </div>
+  </div>
+</nav>
+</body>
+</html>
